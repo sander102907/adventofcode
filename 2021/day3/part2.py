@@ -1,6 +1,6 @@
-with open('input.txt') as f:
-    inputs = f.read().split('\n')
-
+def parse_input(file_path):
+    with open(file_path) as f:
+        return f.read().splitlines()
 
 def bit_criteria(bits, bit_index, most_common):
     ones = sum([int(bit[bit_index]) for bit in bits])
@@ -20,7 +20,20 @@ def find_rating(inputs, most_common=True):
 
     return inputs[0]
 
-oxygen_rating = find_rating(inputs.copy())
-co2_rating = find_rating(inputs.copy(), False)
+def solve(inp):  
+    oxygen_rating = find_rating(inp.copy())
+    co2_rating = find_rating(inp.copy(), False)
 
-print(int(oxygen_rating, 2) * int(co2_rating, 2))
+    return int(oxygen_rating, 2) * int(co2_rating, 2)
+
+
+if __name__ == "__main__":
+    inp = parse_input('input.txt')
+    print(solve(inp))
+
+
+
+
+
+
+
