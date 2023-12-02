@@ -13,15 +13,16 @@ class Game:
 
     @staticmethod
     def from_string(line: str) -> Game:
-        id = int(line[5])
+        colon_index = line.find(':')
+        id = int(line[5:colon_index])
 
         red_idxs = [r.start() for r in re.finditer('red', line)]
         blue_idxs = [r.start() for r in re.finditer('blue', line)]
         green_idxs = [r.start() for r in re.finditer('green', line)]
 
-        red = sum([int(line[red_idx - 2]) for red_idx in red_idxs])
-        blue = sum([int(line[blue_idx - 2]) for blue_idx in blue_idxs])
-        green = sum([int(line[green_idx - 2]) for green_idx in green_idxs])
+        red = sum([int(line[0: red_idx - 1].split(" ")[-1]) for red_idx in red_idxs])
+        blue = sum([int(line[0: blue_idx - 1].split(" ")[-1]) for blue_idx in blue_idxs])
+        green = sum([int(line[0: green_idx - 1].split(" ")[-1]) for green_idx in green_idxs])
 
         return Game(id, blue, red, green)
     
@@ -42,7 +43,6 @@ def solve(games: str) -> None:
     output = sum(map(lambda g: g.id, games))
     print(output)
 
-    
 
 if __name__ == "__main__":
     input_file = "input.txt"
