@@ -7,9 +7,9 @@ import re
 @dataclass
 class Game:
     id: int
-    blue: int
-    red: int
-    green: int
+    blues: int
+    reds: int
+    greens: int
 
     @staticmethod
     def from_string(line: str) -> Game:
@@ -20,16 +20,15 @@ class Game:
         blue_idxs = [r.start() for r in re.finditer('blue', line)]
         green_idxs = [r.start() for r in re.finditer('green', line)]
 
-        red = sum([int(line[0: red_idx - 1].split(" ")[-1]) for red_idx in red_idxs])
-        blue = sum([int(line[0: blue_idx - 1].split(" ")[-1]) for blue_idx in blue_idxs])
-        green = sum([int(line[0: green_idx - 1].split(" ")[-1]) for green_idx in green_idxs])
+        reds = [int(line[0: red_idx - 1].split(" ")[-1]) for red_idx in red_idxs]
+        blues = [int(line[0: blue_idx - 1].split(" ")[-1]) for blue_idx in blue_idxs]
+        greens = [int(line[0: green_idx - 1].split(" ")[-1]) for green_idx in green_idxs]
 
-        return Game(id, blue, red, green)
+        return Game(id, blues, reds, greens)
     
     @property
     def is_possible(self):
-        return self.red <= 12 and self.blue <= 14 and self.green <= 13
-
+        return max(self.reds) <= 12 and max(self.greens) <= 13 and max(self.blues) <= 14S
 
 
 def solve(games: str) -> None:
