@@ -28,7 +28,7 @@ class Game:
     
     @property
     def is_possible(self):
-        return max(self.reds) <= 12 and max(self.greens) <= 13 and max(self.blues) <= 14S
+        return max(self.reds) <= 12 and max(self.greens) <= 13 and max(self.blues) <= 14
 
 
 def solve(games: str) -> None:
