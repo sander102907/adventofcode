@@ -31,16 +31,11 @@ def _extrapolate(history: List[List[int]]):
     return history
 
 
-
-
-
-
 def solve(lines: str) -> None:
 
     answer = 0
 
     for line in lines:
-
         # Split and make int
         values = line.strip().split(' ')
         values = [int(x) for x in values]
