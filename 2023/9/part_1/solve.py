@@ -23,10 +23,8 @@ def _extrapolate(history: List[List[int]]):
 
     # Work back by summing the last value of each row
     for i in range(len(history) - 2, -1, -1):
-        a = history[i][-1]
-        b = history[i + 1][-1]
-        c = a + b
-        history[i].append(c)
+        value = history[i][-1] + history[i + 1][-1]
+        history[i].append(value)
 
     return history
 
