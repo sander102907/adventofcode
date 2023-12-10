@@ -42,7 +42,6 @@ directions_to_check = {
 
 
 def find_edges(start_node: Node, grid: List[List[str]], all_nodes):
-    # Check row before, self, after
 
     queue = [start_node]
 
@@ -78,10 +77,8 @@ def find_edges(start_node: Node, grid: List[List[str]], all_nodes):
 
                     # Next node
                     target_node = add_node(node, neigbour_character, row_index, column_index, all_nodes)
-
-                    if target_node.next is None:
-                        queue.append(target_node)
-                        break
+                    queue.append(target_node)
+                    break
             
             # If we arrive back at the start node (after at least three)
             if all_nodes[row_index][column_index] == start_node and len(queue) > 3:
