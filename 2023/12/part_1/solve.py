@@ -1,58 +1,65 @@
 import os
 import re
-from itertools import groupby, product
 from typing import List
 from dataclasses import dataclass
 from functools import cached_property
 import numpy as np
+from copy import deepcopy
+
 
 @dataclass
 class Row:
     damaged_idxs: List[int]
     unknown_idxs: List[int]
     groups: List[int]
+    width: int
 
-    @cached_property
-    def damaged_groups(self):
-        return self._consecutive_groups(self.damaged_idxs)
-
-    @cached_property
-    def unknown_groups(self):
-        return self._consecutive_groups(self.unknown_idxs)
-    
+    @property
     def num_arrangements(self) -> int:
-        total_groups = [(g, 0) for g in self.damaged_groups] + [(g, 1) for g in self.unknown_groups]
-        total_groups = sorted(total_groups, key=lambda x: x[0][0])
+        arrangement = []
+        start_idx = 0
 
-        num_arrangements = 0
+        for group in self.groups:
+            arrangement.append(np.array(range(start_idx, start_idx + group)))
+            start_idx += group + 1
 
-        min_num_unknowns = (len(self.groups) - len(self.damaged_groups))
+        return self._slide(arrangement, 0, self._end(arrangement[0][-1], 0))
 
-        unknown_idxs = np.array(self.unknown_idxs)
+    def _end(self, start, group_idx):
+        return (
+            self.width
+            - sum(self.groups[group_idx + 1 :])
+            - len(self.groups[group_idx + 1 :])
+            - start
+        )
 
-        for config in product([0, 1], repeat=len(self.unknown_idxs)):
-            config = np.array(config)
+    @cached_property
+    def idxs_set(self):
+        return set(self.damaged_idxs + self.unknown_idxs)
 
-            if np.sum(config) >= min_num_unknowns:
-                if self._check_arrangement(unknown_idxs[config == 1]):
-                    num_arrangements += 1
+    def _slide(self, arrangement, group_idx, end):
+        arrangements = 0
 
-        return num_arrangements
+        for _ in range(end):
+            if group_idx >= len(arrangement) - 1:
+                arrangements += 1 if self._check_arrangement(arrangement) else 0
 
+            else:
+                arrangements += self._slide(
+                    deepcopy(arrangement),
+                    group_idx + 1,
+                    self._end(arrangement[group_idx + 1][-1], group_idx + 1),
+                )
 
-    def _check_arrangement(self, unknown_idxs: List[int]) -> bool:
-        arrangement = sorted(self.damaged_idxs + [x for x in unknown_idxs if x != -1])
-        found_groups = self._consecutive_groups(arrangement)
+            for idx in range(group_idx, len(arrangement)):
+                arrangement[idx] += 1
 
-        return [len(g) for g in found_groups] == self.groups
+        return arrangements
 
-
-    def _consecutive_groups(self, l: List[int]) -> List[List[int]]:
-        groups = []
-        for _, g in groupby(enumerate(l), lambda ix : ix[0] - ix[1]):
-            groups.append(list(map(lambda ix: ix[1], g)))
-
-        return groups
+    def _check_arrangement(self, arrangement) -> bool:
+        return set(self.damaged_idxs) <= set(
+            [j for sub in arrangement for j in sub]
+        ) and all([set(x) <= self.idxs_set for x in arrangement])
 
 
 def solve(lines: str) -> None:
@@ -63,10 +70,11 @@ def solve(lines: str) -> None:
         unknown_idxs = [x.start() for x in re.finditer(r"\?", line)]
         groups = [int(x) for x in re.findall(r"\d+", line)]
 
-        row = Row(damaged_idxs, unknown_idxs, groups)
-        total_arrangements += row.num_arrangements()
+        row = Row(damaged_idxs, unknown_idxs, groups, len(line.split(" ")[0]))
+        total_arrangements += row.num_arrangements
 
     print(total_arrangements)
+
 
 if __name__ == "__main__":
     input_file = "input.txt"
