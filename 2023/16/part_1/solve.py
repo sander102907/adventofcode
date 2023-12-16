@@ -98,7 +98,7 @@ class Beam:
             if self.direction == Direction.RIGHT:
                 self.column += 1
             elif self.direction == Direction.LEFT:
-                self.row -= 1
+                self.column -= 1
             elif self.direction == Direction.DOWN:
                 extra_beams.append(Beam(self.row, self.column - 1, Direction.LEFT))
                 self.column += 1
