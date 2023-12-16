@@ -38,21 +38,22 @@ class Beam:
     def can_continue(self, grid, energized_cells: Set[EnergizedCell]):
         cell = EnergizedCell(self.row, self.column, self.direction)
 
-        # Check if already visited
-        if cell in energized_cells:
-            return False
-        else:
-            energized_cells.add(cell)
-
         if self.row >= 0 and self.row < len(grid):
             if self.column >= 0 and self.column < len(grid[self.row]):
+                # Check if already visited
+                if cell in energized_cells:
+                    return False
+                else:
+                    energized_cells.add(cell)
+
                 return True
+
         return False
 
     def next(self, grid):
         extra_beams = []
         char = grid[self.row][self.column]
-        print(char)
+        #print(char)
 
         if char == '.':
             if self.direction == Direction.RIGHT:
@@ -116,9 +117,9 @@ class Beam:
                 self.row -= 1
                 self.direction = Direction.UP
             elif self.direction == Direction.DOWN:
-                self.column += 1
+                self.row += 1
             elif self.direction == Direction.UP:
-                self.column -= 1
+                self.row -= 1
 
 
         return extra_beams
@@ -141,7 +142,7 @@ def solve(lines: str) -> None:
     energized_cells: Set[EnergizedCell] = set()
     for row, line in enumerate(lines):
         grid[row] = {}
-        for column, char in enumerate(line):
+        for column, char in enumerate(line.strip()):
             grid[row][column] = char
 
     solve_beams(grid, energized_cells)
@@ -154,7 +155,7 @@ def solve(lines: str) -> None:
 
     for row, line in enumerate(lines):
         print("")
-        for column, char in enumerate(line):
+        for column, char in enumerate(line.strip()):
             if (row,column) in unique_cells:
                 print("#", end="")
             else:
@@ -163,7 +164,7 @@ def solve(lines: str) -> None:
 
 
 if __name__ == "__main__":
-    input_file = "sample_input.txt"
+    input_file = "input.txt"
 
     path = os.path.join(os.path.abspath(__file__), "..", "..", "input", input_file)
     with open(path, "r", encoding="utf-8") as f:
