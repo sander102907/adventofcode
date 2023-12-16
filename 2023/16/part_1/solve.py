@@ -29,6 +29,7 @@ class EnergizedCell:
     def __hash__(self):
         return hash((self.row, self.column, self.direction))
 
+
 @dataclass
 class Beam:
     row: int
@@ -53,9 +54,9 @@ class Beam:
     def next(self, grid):
         extra_beams = []
         char = grid[self.row][self.column]
-        #print(char)
+        # print(char)
 
-        if char == '.':
+        if char == ".":
             if self.direction == Direction.RIGHT:
                 self.column += 1
             elif self.direction == Direction.LEFT:
@@ -65,7 +66,7 @@ class Beam:
             elif self.direction == Direction.UP:
                 self.row -= 1
 
-        elif char == '/':
+        elif char == "/":
             if self.direction == Direction.RIGHT:
                 self.row -= 1
                 self.direction = Direction.UP
@@ -79,7 +80,7 @@ class Beam:
                 self.column += 1
                 self.direction = Direction.RIGHT
 
-        elif char == '\\':
+        elif char == "\\":
             if self.direction == Direction.RIGHT:
                 self.row += 1
                 self.direction = Direction.DOWN
@@ -93,25 +94,25 @@ class Beam:
                 self.column -= 1
                 self.direction = Direction.LEFT
 
-        elif char == '-':
+        elif char == "-":
             if self.direction == Direction.RIGHT:
                 self.column += 1
             elif self.direction == Direction.LEFT:
                 self.row -= 1
-            elif self.direction == Direction.DOWN:                
-                extra_beams.append(Beam(self.row, self.column -1, Direction.LEFT))
+            elif self.direction == Direction.DOWN:
+                extra_beams.append(Beam(self.row, self.column - 1, Direction.LEFT))
                 self.column += 1
                 self.direction = Direction.RIGHT
-            elif self.direction == Direction.UP:                
+            elif self.direction == Direction.UP:
                 extra_beams.append(Beam(self.row, self.column + 1, Direction.RIGHT))
                 self.column -= 1
                 self.direction = Direction.LEFT
 
-        elif char == '|':
+        elif char == "|":
             if self.direction == Direction.RIGHT:
                 extra_beams.append(Beam(self.row - 1, self.column, Direction.UP))
                 self.row += 1
-                self.direction = Direction.DOWN                
+                self.direction = Direction.DOWN
             elif self.direction == Direction.LEFT:
                 extra_beams.append(Beam(self.row + 1, self.column, Direction.DOWN))
                 self.row -= 1
@@ -121,12 +122,10 @@ class Beam:
             elif self.direction == Direction.UP:
                 self.row -= 1
 
-
         return extra_beams
 
 
-
-def solve_beams(grid, energized_cells:Set[EnergizedCell]):
+def solve_beams(grid, energized_cells: Set[EnergizedCell]):
     beams: List[Beam] = []
     beams.append(Beam(0, 0, Direction.RIGHT))
 
@@ -134,7 +133,6 @@ def solve_beams(grid, energized_cells:Set[EnergizedCell]):
         while beam.can_continue(grid, energized_cells):
             extra_beams = beam.next(grid)
             beams.extend(extra_beams)
-
 
 
 def solve(lines: str) -> None:
@@ -156,11 +154,10 @@ def solve(lines: str) -> None:
     for row, line in enumerate(lines):
         print("")
         for column, char in enumerate(line.strip()):
-            if (row,column) in unique_cells:
+            if (row, column) in unique_cells:
                 print("#", end="")
             else:
                 print(".", end="")
-            
 
 
 if __name__ == "__main__":
