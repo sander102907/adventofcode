@@ -10,7 +10,7 @@ import numpy as np
 class Node:
     position: Tuple[int, int]
     value: int
-    same_dir_counter: int
+    same_dir_counter: {}
     prev_dir: int
 
     def next_nodes(self, map):
@@ -18,14 +18,14 @@ class Node:
         # Define directions: 0 (left), 1 (down), 2 (right), 3 (up)
         directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
         next_nodes = []
-        same_dir_counter = 0
 
         for i, dir in enumerate(directions):
+            same_dir_counter = {0:0, 1:0, 2:0, 3:0}
             new_row = self.position[0] + dir[0]
             new_col = self.position[1] + dir[1]
 
             if self.prev_dir == i:
-                same_dir_counter = self.same_dir_counter + 1
+                same_dir_counter[i] = self.same_dir_counter[i] + 1
 
             if (
                 0 <= new_row < rows
@@ -38,7 +38,7 @@ class Node:
                 next_nodes.append(
                     Node(
                         (new_row, new_col),
-                        self.value + map[new_row][new_col] + 0 if same_dir_counter <= 3 else 999,
+                        self.value + map[new_row][new_col] + 0 if same_dir_counter[i] <= 2 else 999,
                         same_dir_counter,
                         i,
                     )
@@ -52,7 +52,7 @@ def dijkstra(map):
     distances = np.full((rows, cols), fill_value=np.inf, dtype=float)
     distances[0, 0] = map[0][0]
 
-    start = Node(position=(0, 0), value=map[0][0], same_dir_counter=0, prev_dir=-1)
+    start = Node(position=(0, 0), value=map[0][0], same_dir_counter={0:0, 1:0, 2:0, 3:0}, prev_dir=-1)
 
     unvisited_nodes = [start]
 
@@ -61,14 +61,18 @@ def dijkstra(map):
 
         # Remove the current node from the list of unvisited nodes
         unvisited_nodes.remove(node)
+
+        # if node.value == 78:
+        #     x = 1
+
         # Explore neighbors in different directions
         for next_node in node.next_nodes(map):
             # Update distance if a shorter path is found
-            if next_node.value < distances[next_node.position[0], next_node.position[1]]:
+            if next_node.value <= distances[next_node.position[0], next_node.position[1]]:
                 distances[next_node.position[0], next_node.position[1]] = next_node.value
                 unvisited_nodes.append(next_node)
 
-    #print(distances)
+    print(distances)
     return distances[rows - 1, cols - 1] - start.value
 
 
@@ -88,7 +92,7 @@ def solve(lines: str) -> None:
 
 
 if __name__ == "__main__":
-    input_file = "input.txt"
+    input_file = "sample_input.txt"
 
     path = os.path.join(os.path.abspath(__file__), "..", "..", "input", input_file)
     with open(path, "r", encoding="utf-8") as f:
