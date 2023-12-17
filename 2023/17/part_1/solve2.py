@@ -30,23 +30,19 @@ class Node:
             if (
                 0 <= new_row < rows
                 and 0 <= new_col < cols
-                and same_dir_counter <= 3
-                and not (
+                and (not (
                     directions[self.prev_dir][0] * -1 == directions[i][0]
                     and directions[self.prev_dir][1] * -1 == directions[i][1]
-                )
+                ) or self.prev_dir == -1)
             ):
                 next_nodes.append(
                     Node(
                         (new_row, new_col),
-                        self.value + map[new_row][new_col],
+                        self.value + map[new_row][new_col] + 0 if same_dir_counter <= 3 else 999,
                         same_dir_counter,
                         i,
                     )
                 )
-
-            if self.value == 22:
-                print(next_nodes)
 
         return next_nodes
 
@@ -54,7 +50,6 @@ class Node:
 def dijkstra(map):
     rows, cols = len(map), len(map[0])
     distances = np.full((rows, cols), fill_value=np.inf, dtype=float)
-    print(distances)
     distances[0, 0] = map[0][0]
 
     start = Node(position=(0, 0), value=map[0][0], same_dir_counter=0, prev_dir=-1)
@@ -73,8 +68,8 @@ def dijkstra(map):
                 distances[next_node.position[0], next_node.position[1]] = next_node.value
                 unvisited_nodes.append(next_node)
 
-    print(distances)
-    return distances[rows - 1, cols - 1]
+    #print(distances)
+    return distances[rows - 1, cols - 1] - start.value
 
 
 
@@ -93,7 +88,7 @@ def solve(lines: str) -> None:
 
 
 if __name__ == "__main__":
-    input_file = "sample_input.txt"
+    input_file = "input.txt"
 
     path = os.path.join(os.path.abspath(__file__), "..", "..", "input", input_file)
     with open(path, "r", encoding="utf-8") as f:
