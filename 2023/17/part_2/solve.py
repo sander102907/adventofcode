@@ -1,7 +1,120 @@
+from __future__ import annotations
+
 import os
+from dataclasses import dataclass
+from typing import List, Tuple
+import numpy as np
+
+
+@dataclass
+class Node:
+    position: Tuple[int, int]
+    value: int
+    same_dir_counter: {}
+    prev_dir: int
+
+    def next_nodes(self, map) -> List[Node]:
+        rows, cols = len(map), len(map[0])
+        # Define directions: 0 (left), 1 (down), 2 (right), 3 (up)
+        directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+        next_nodes = []
+
+        for i, dir in enumerate(directions):
+            new_same_dir_counter = 1
+            new_row = self.position[0] + dir[0]
+            new_col = self.position[1] + dir[1]
+
+            if self.prev_dir == i:
+                new_same_dir_counter = self.same_dir_counter + 1
+
+            if (
+                0 <= new_row < rows
+                and 0 <= new_col < cols
+                and (
+                    not (
+                        directions[self.prev_dir][0] * -1 == directions[i][0]
+                        and directions[self.prev_dir][1] * -1 == directions[i][1]
+                    )
+                )
+                and ((new_same_dir_counter <= 4 and self.prev_dir == i) or self.same_dir_counter > 3)
+                and new_same_dir_counter <= 10
+            ):
+                next_nodes.append(
+                    Node(
+                        (new_row, new_col),
+                        self.value + map[new_row][new_col],
+                        new_same_dir_counter,
+                        i
+                    )
+                )
+
+        return next_nodes
+
+
+def dijkstra(map):
+    rows, cols = len(map), len(map[0])
+    distances = np.full((rows, cols, 4, 10), fill_value=np.inf, dtype=float)
+    distances[0, 1, 2] = map[0][1]
+    distances[1, 0, 1] = map[1][0]
+
+    second = Node(
+        position=(0, 1),
+        value=map[0][1],
+        same_dir_counter=1,
+        prev_dir=2
+    )
+
+    third = Node(
+        position=(1, 0),
+        value=map[1][0],
+        same_dir_counter=1,
+        prev_dir=1
+    )
+
+    unvisited_nodes = [second, third]
+
+    while unvisited_nodes:
+        node = min(unvisited_nodes, key=lambda node: node.value)
+
+        # Remove the current node from the list of unvisited nodes
+        unvisited_nodes.remove(node)
+
+        # Explore neighbors in different directions
+        for next_node in node.next_nodes(map):
+            # Update distance if a shorter path is found
+            if (
+                next_node.value
+                < distances[
+                    next_node.position[0],
+                    next_node.position[1],
+                    next_node.prev_dir,
+                    next_node.same_dir_counter - 1,
+                ]
+            ):
+                distances[
+                    next_node.position[0],
+                    next_node.position[1],
+                    next_node.prev_dir,
+                    next_node.same_dir_counter - 1,
+                ] = next_node.value
+                unvisited_nodes.append(next_node)
+
+    return np.min(distances[rows - 1, cols - 1, :, 3:])
+
 
 def solve(lines: str) -> None:
-    pass
+    city_map = []
+
+    for line in lines:
+        row = []
+        for number in line.strip():
+            row.append(int(number))
+
+        city_map.append(row)
+
+    heat_loss = dijkstra(city_map)
+    print(heat_loss)
+
 
 if __name__ == "__main__":
     input_file = "input.txt"

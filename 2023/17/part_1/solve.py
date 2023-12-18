@@ -1,72 +1,144 @@
+from __future__ import annotations
+
 import os
+from dataclasses import dataclass
+from typing import List, Tuple
+import numpy as np
 
-import heapq
 
-def min_heat_loss(city_map):
-    rows, cols = len(city_map), len(city_map[0])
+@dataclass
+class Node:
+    position: Tuple[int, int]
+    value: int
+    same_dir_counter: {}
+    prev_dir: int
+    p1: Node
+    p2: Node
+    p3: Node
 
-    # Priority queue to store (heat loss, row, col, direction, consecutive_blocks) tuples
-    pq = [(city_map[0][0], 0, 0, 0, 0)]
+    def next_nodes(self, map) -> List[Node]:
+        rows, cols = len(map), len(map[0])
+        # Define directions: 0 (left), 1 (down), 2 (right), 3 (up)
+        directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+        next_nodes = []
 
-    # Set to keep track of visited positions, directions, and consecutive blocks
-    visited = set()
+        for i, dir in enumerate(directions):
+            new_same_dir_counter = 1
+            new_row = self.position[0] + dir[0]
+            new_col = self.position[1] + dir[1]
 
-    # Define directions: right, down, left, up (clockwise)
-    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+            if self.prev_dir == i:
+                new_same_dir_counter = self.same_dir_counter + 1
 
-    while pq:
-        heat_loss, i, j, k, c = heapq.heappop(pq)
+            if (
+                0 <= new_row < rows
+                and 0 <= new_col < cols
+                and (
+                    not (
+                        directions[self.prev_dir][0] * -1 == directions[i][0]
+                        and directions[self.prev_dir][1] * -1 == directions[i][1]
+                    )
+                )
+                and new_same_dir_counter <= 3
+            ):
+                next_nodes.append(
+                    Node(
+                        (new_row, new_col),
+                        self.value + map[new_row][new_col],
+                        new_same_dir_counter,
+                        i,
+                        self,
+                        self.p1,
+                        self.p2,
+                    )
+                )
 
-        # Check if the destination is reached
-        if i == rows - 1 and j == cols - 1:
-            return heat_loss
+        return next_nodes
 
-        # Check if the current state has already been visited
-        if (i, j, k) in visited:
-            continue
 
-        # Mark the current state as visited
-        visited.add((i, j, k))
+def dijkstra(map):
+    rows, cols = len(map), len(map[0])
+    distances = np.full((rows, cols, 4, 3), fill_value=np.inf, dtype=float)
+    distances[0, 1, 2] = map[0][1]
+    distances[1, 0, 1] = map[1][0]
 
-        # Try all possible directions
-        for d in range(4):
-            # Back is not allowed
-            if directions[k][0] * -1 == directions[d][0] and directions[k][1] * -1 == directions[d][1]:
-                continue
+    start = Node(
+        position=(0, 0),
+        value=map[0][0],
+        same_dir_counter=0,
+        prev_dir=-1,
+        p1=None,
+        p2=None,
+        p3=None,
+    )
 
-            ni, nj = i + directions[d][0], j + directions[d][1]
+    second = Node(
+        position=(0, 1),
+        value=map[0][1],
+        same_dir_counter=1,
+        prev_dir=2,
+        p1=start,
+        p2=None,
+        p3=None,
+    )
 
-            # Check if the new position is within bounds
-            if 0 <= ni < rows and 0 <= nj < cols:
-                # Update the heat loss for the new position, direction, and consecutive blocks
-                new_heat_loss = heat_loss + city_map[ni][nj]
+    third = Node(
+        position=(1, 0),
+        value=map[1][0],
+        same_dir_counter=1,
+        prev_dir=1,
+        p1=start,
+        p2=None,
+        p3=None,
+    )
 
-                if d == k:
-                    new_c = c + 1
-                else:
-                    new_c = 1
+    unvisited_nodes = [second, third]
 
-                # Check if consecutive blocks limit is not exceeded
-                if new_c <= 3:
-                    heapq.heappush(pq, (new_heat_loss, ni, nj, d, new_c))
+    while unvisited_nodes:
+        node = min(unvisited_nodes, key=lambda node: node.value)
 
-    return float('inf')  # No path found
+        # Remove the current node from the list of unvisited nodes
+        unvisited_nodes.remove(node)
+
+        # Explore neighbors in different directions
+        for next_node in node.next_nodes(map):
+            # Update distance if a shorter path is found
+            if (
+                next_node.value
+                < distances[
+                    next_node.position[0],
+                    next_node.position[1],
+                    next_node.prev_dir,
+                    next_node.same_dir_counter - 1,
+                ]
+            ):
+                distances[
+                    next_node.position[0],
+                    next_node.position[1],
+                    next_node.prev_dir,
+                    next_node.same_dir_counter - 1,
+                ] = next_node.value
+                unvisited_nodes.append(next_node)
+
+    return np.min(distances[rows - 1, cols - 1])
+
 
 def solve(lines: str) -> None:
     city_map = []
+
     for line in lines:
         row = []
         for number in line.strip():
             row.append(int(number))
-        
+
         city_map.append(row)
 
-    result = min_heat_loss(city_map) - city_map[0][0]
-    print("Minimum heat loss:", result)
-    
+    heat_loss = dijkstra(city_map)
+    print(heat_loss)
+
 
 if __name__ == "__main__":
-    input_file = "sample_input.txt"
+    input_file = "input.txt"
 
     path = os.path.join(os.path.abspath(__file__), "..", "..", "input", input_file)
     with open(path, "r", encoding="utf-8") as f:
